@@ -1,5 +1,4 @@
 //
-// $Id: Photon.h,v 1.23 2009/10/15 17:37:53 rwolf Exp $
 //
 
 #ifndef DataFormats_PatCandidates_Photon_h
@@ -16,7 +15,6 @@
    https://hypernews.cern.ch/HyperNews/CMS/get/physTools.html
 
   \author   Steven Lowette, Giovanni Petrucciani, Frederic Ronga
-  \version  $Id: Photon.h,v 1.23 2009/10/15 17:37:53 rwolf Exp $
 */
 
 #include "DataFormats/PatCandidates/interface/PATObject.h"
@@ -102,6 +100,23 @@ namespace pat {
       /// Returns the calorimeter isolation combined from ecal 
       /// and hcal 
       float caloIso()  const { return ecalIso()+hcalIso(); }
+
+      /// PARTICLE FLOW ISOLATION
+      /// Returns the isolation calculated with all the PFCandidates
+      float particleIso() const { return userIsolation(pat::PfAllParticleIso); }
+      /// Returns the isolation calculated with only the charged hadron
+      /// PFCandidates
+      float chargedHadronIso() const { return userIsolation(pat::PfChargedHadronIso); }
+      /// Returns the isolation calculated with only the neutral hadron
+      /// PFCandidates
+      float neutralHadronIso() const { return userIsolation(pat::PfNeutralHadronIso); }        
+      /// Returns the isolation calculated with only the gamma
+      /// PFCandidates
+      float photonIso() const { return userIsolation(pat::PfGammaIso); }
+      /// Returns the isolation calculated with only the pile-up charged hadron
+      /// PFCandidates
+      float puChargedHadronIso() const { return userIsolation(pat::PfPUChargedHadronIso); }        
+
       /// Returns a user defined isolation value
       float userIso(uint8_t index=0)  const { return userIsolation(IsolationKeys(UserBaseIso + index)); }
       /// Returns the isolation variable for a specifc key (or 

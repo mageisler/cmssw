@@ -31,6 +31,7 @@
 #include "SimGeneral/DataMixingModule/plugins/DataMixingHcalDigiWorkerProd.h"
 #include "SimGeneral/DataMixingModule/plugins/DataMixingMuonWorker.h"
 #include "SimGeneral/DataMixingModule/plugins/DataMixingSiStripWorker.h"
+#include "SimGeneral/DataMixingModule/plugins/DataMixingSiStripMCDigiWorker.h"
 #include "SimGeneral/DataMixingModule/plugins/DataMixingSiStripRawWorker.h"
 #include "SimGeneral/DataMixingModule/plugins/DataMixingSiPixelWorker.h"
 #include "SimGeneral/DataMixingModule/plugins/DataMixingGeneralTrackWorker.h"
@@ -41,8 +42,10 @@
 #include <string>
 
 
-namespace edm
-{
+namespace edm {
+
+  class ModuleCallingContext;
+
   class DataMixingModule : public BMixingModule
     {
     public:
@@ -57,10 +60,12 @@ namespace edm
       virtual void checkSignal(const edm::Event &e) {}
       virtual void createnewEDProduct() {}
       virtual void addSignals(const edm::Event &e, const edm::EventSetup& ES); 
-      virtual void doPileUp(edm::Event &e,const edm::EventSetup& ES);
+      virtual void doPileUp(edm::Event &e,const edm::EventSetup& ES) override;
       virtual void put(edm::Event &e,const edm::EventSetup& ES) ;
 
-      void pileWorker(const edm::EventPrincipal&, int bcr, int EventId,const edm::EventSetup& ES);
+      virtual void initializeEvent(edm::Event const& e, edm::EventSetup const& eventSetup);
+
+      void pileWorker(const edm::EventPrincipal&, int bcr, int EventId,const edm::EventSetup& ES, ModuleCallingContext const*);
 
     private:
       // data specifiers
@@ -124,6 +129,16 @@ namespace edm
       DataMixingHcalDigiWorker *HcalDigiWorker_ ;
       DataMixingHcalDigiWorkerProd *HcalDigiWorkerProd_ ;
 
+     // tokens needed to DataMixingHcalDigiWorkerProd
+      edm::InputTag HBHEPileInputTag_; // InputTag for Pileup Digis collection  
+      edm::InputTag HOPileInputTag_  ; // InputTag for Pileup Digis collection
+      edm::InputTag HFPileInputTag_  ; // InputTag for Pileup Digis collection
+      edm::InputTag ZDCPileInputTag_ ; // InputTag for Pileup Digis collection
+     edm::EDGetTokenT<HBHEDigitizerTraits::DigiCollection> tok_hbhe_;
+     edm::EDGetTokenT<HODigitizerTraits::DigiCollection> tok_ho_;
+     edm::EDGetTokenT<HFDigitizerTraits::DigiCollection> tok_hf_;
+     edm::EDGetTokenT<ZDCDigitizerTraits::DigiCollection> tok_zdc_;
+
       bool MergeHcalDigis_;
       bool MergeHcalDigisProd_;
 
@@ -137,8 +152,10 @@ namespace edm
       // Si-Strips
 
       DataMixingSiStripWorker *SiStripWorker_ ;
+      DataMixingSiStripMCDigiWorker *SiStripMCDigiWorker_ ;
       DataMixingSiStripRawWorker *SiStripRawWorker_ ;
       bool useSiStripRawDigi_;
+      bool addMCDigiNoise_;
       std::string siStripRawDigiSource_;
 
       // Pixels

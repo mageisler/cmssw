@@ -8,10 +8,10 @@ import FWCore.ParameterSet.Config as cms
 #  LHE:
 #    include pure LHE production
 #
-#  RAW , RECO, AOD: 
+#  RAW , RECO, AOD:
 #    include reconstruction content
 #
-#  RAWSIM, RECOSIM, AODSIM: 
+#  RAWSIM, RECOSIM, AODSIM:
 #    include reconstruction and simulation
 #
 #  GENRAW
@@ -20,11 +20,14 @@ import FWCore.ParameterSet.Config as cms
 #  PREMIX
 #    special Digi collections for pre-mixing minbias events for pileup simulation
 #
+#  PREMIXRAW
+#    extension of GENRAW for pre-mixing minbias events for pileup simulation.  Raw2Digi step is done.
+#
 #  RAWDEBUG(RAWSIM+ALL_SIM_INFO), RAWDEBUGHLT(RAWDEBUG+HLTDEBUG)
 #
 #  RAWSIMHLT (RAWSIM + HLTDEBUG)
 #
-#  RAWRECOSIMHLT, RAWRECODEBUGHLT  
+#  RAWRECOSIMHLT, RAWRECODEBUGHLT
 #
 #  FEVT (RAW+RECO), FEVTSIM (RAWSIM+RECOSIM), FEVTDEBUG (FEVTSIM+ALL_SIM_INFO), FEVTDEBUGHLT (FEVTDEBUG+HLTDEBUG)
 #
@@ -57,7 +60,7 @@ from RecoVertex.BeamSpotProducer.BeamSpot_EventContent_cff import *
 from CommonTools.ParticleFlow.EITopPAG_EventContent_cff import EITopPAGEventContent
 
 # raw2digi that are already the final RECO/AOD products
-from EventFilter.ScalersRawToDigi.Scalers_EventContent_cff import * 
+from EventFilter.ScalersRawToDigi.Scalers_EventContent_cff import *
 
 #DigiToRaw content
 from EventFilter.Configuration.DigiToRaw_EventContent_cff import *
@@ -108,7 +111,7 @@ CommonEventContent = cms.PSet(
 #
 #
 LHEEventContent = cms.PSet(
-    outputCommands = cms.untracked.vstring('drop *'), 
+    outputCommands = cms.untracked.vstring('drop *'),
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)
 )
@@ -118,7 +121,7 @@ LHEEventContent = cms.PSet(
 #
 #
 RAWEventContent = cms.PSet(
-    outputCommands = cms.untracked.vstring('drop *', 
+    outputCommands = cms.untracked.vstring('drop *',
         'keep  FEDRawDataCollection_rawDataCollector_*_*',
         'keep  FEDRawDataCollection_source_*_*'),
     splitLevel = cms.untracked.int32(0),
@@ -132,7 +135,7 @@ RAWEventContent = cms.PSet(
 RECOEventContent = cms.PSet(
     outputCommands = cms.untracked.vstring('drop *'),
     splitLevel = cms.untracked.int32(0),
-    eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)    
+    eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)
 )
 #
 #
@@ -292,7 +295,7 @@ FEVTDEBUGEventContent = cms.PSet(
 FEVTDEBUGHLTEventContent = cms.PSet(
     outputCommands = cms.untracked.vstring('drop *'),
     splitLevel = cms.untracked.int32(0),
-    eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)
+    eventAutoFlushCompressedSize=cms.untracked.int32(1*1024*1024)
 )
 
 #
@@ -404,6 +407,15 @@ MIXINGMODULEEventContent = cms.PSet(
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)
     )
+
+# PREMIXRAW Data Tier definition
+#
+#
+PREMIXRAWEventContent = cms.PSet(
+    outputCommands = cms.untracked.vstring('drop *'),
+    splitLevel = cms.untracked.int32(0),
+    eventAutoFlushCompressedSize=cms.untracked.int32(5*1024*1024)
+)
 
 #
 #
@@ -521,6 +533,11 @@ GENRAWEventContent.outputCommands.extend(IOMCRAW.outputCommands)
 GENRAWEventContent.outputCommands.extend(DigiToRawFEVT.outputCommands)
 GENRAWEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 
+PREMIXRAWEventContent.outputCommands.extend(GENRAWEventContent.outputCommands)
+PREMIXRAWEventContent.outputCommands.append('keep CrossingFramePlaybackInfoExtended_*_*_*')
+PREMIXRAWEventContent.outputCommands.append('drop CrossingFramePlaybackInfoExtended_mix_*_*')
+PREMIXRAWEventContent.outputCommands.append('drop PileupSummaryInfos_addPileupInfo_*_*')            
+
 REPACKRAWSIMEventContent.outputCommands.extend(REPACKRAWEventContent.outputCommands)
 REPACKRAWSIMEventContent.outputCommands.extend(SimG4CoreRAW.outputCommands)
 REPACKRAWSIMEventContent.outputCommands.extend(SimTrackerRAW.outputCommands)
@@ -557,7 +574,7 @@ AODSIMEventContent.outputCommands.extend(RecoGenMETAOD.outputCommands)
 AODSIMEventContent.outputCommands.extend(SimGeneralAOD.outputCommands)
 AODSIMEventContent.outputCommands.extend(MEtoEDMConverterAOD.outputCommands)
 
-RAWRECOSIMHLTEventContent.outputCommands.extend(RAWRECOEventContent.outputCommands) 
+RAWRECOSIMHLTEventContent.outputCommands.extend(RAWRECOEventContent.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(GeneratorInterfaceRECO.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(RecoGenMETRECO.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(RecoGenJetsRECO.outputCommands)
@@ -567,9 +584,9 @@ RAWRECOSIMHLTEventContent.outputCommands.extend(SimMuonRECO.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(SimCalorimetryRECO.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(SimGeneralRECO.outputCommands)
 RAWRECOSIMHLTEventContent.outputCommands.extend(MEtoEDMConverterRECO.outputCommands)
-RAWRECOSIMHLTEventContent.outputCommands.extend(HLTDebugRAW.outputCommands) 
+RAWRECOSIMHLTEventContent.outputCommands.extend(HLTDebugRAW.outputCommands)
 
-RAWRECODEBUGHLTEventContent.outputCommands.extend(RAWRECOSIMHLTEventContent.outputCommands) 
+RAWRECODEBUGHLTEventContent.outputCommands.extend(RAWRECOSIMHLTEventContent.outputCommands)
 RAWRECODEBUGHLTEventContent.outputCommands.extend(SimGeneralFEVTDEBUG.outputCommands)
 RAWRECODEBUGHLTEventContent.outputCommands.extend(SimTrackerDEBUG.outputCommands)
 
@@ -644,6 +661,7 @@ FEVTSIMEventContent.outputCommands.extend(SimCalorimetryRECO.outputCommands)
 FEVTSIMEventContent.outputCommands.extend(SimGeneralRECO.outputCommands)
 FEVTSIMEventContent.outputCommands.extend(MEtoEDMConverterRECO.outputCommands)
 FEVTSIMEventContent.outputCommands.extend(EvtScalersRECO.outputCommands)
+FEVTSIMEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 FEVTSIMEventContent.outputCommands.extend(EITopPAGEventContent.outputCommands)
 RAWDEBUGEventContent.outputCommands.extend(RAWSIMEventContent.outputCommands)
 RAWDEBUGEventContent.outputCommands.extend(SimTrackerDEBUG.outputCommands)

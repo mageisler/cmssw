@@ -20,6 +20,10 @@
 
 #include <iostream>
 
+namespace edm {
+  class ModuleCallingContext;
+}
+
 template<class HCALDIGITIZERTRAITS>
 class HcalSignalGenerator : public HcalBaseSignalGenerator
 {
@@ -27,10 +31,14 @@ public:
   typedef typename HCALDIGITIZERTRAITS::Digi DIGI;
   typedef typename HCALDIGITIZERTRAITS::DigiCollection COLLECTION;
 
-  HcalSignalGenerator(const edm::InputTag & inputTag)
-  : HcalBaseSignalGenerator(), theEvent(0), theEventPrincipal(0), theInputTag(inputTag) {}
+  HcalSignalGenerator():HcalBaseSignalGenerator() { }
+
+  HcalSignalGenerator(const edm::InputTag & inputTag, const edm::EDGetTokenT<COLLECTION> &t)
+  : HcalBaseSignalGenerator(), theEvent(0), theEventPrincipal(0), theInputTag(inputTag), tok_(t) 
+  { }
 
   virtual ~HcalSignalGenerator() {}
+
 
   void initializeEvent(const edm::Event * event, const edm::EventSetup * eventSetup)
   {
@@ -47,7 +55,7 @@ public:
     theParameterMap->setDbService(theConditions.product());
   }
 
-  virtual void fill()
+  virtual void fill(edm::ModuleCallingContext const* mcc)
   {
     theNoiseSignals.clear();
     edm::Handle<COLLECTION> pDigis;
@@ -55,7 +63,7 @@ public:
     // try accessing by whatever is set, Event or EventPrincipal
     if(theEvent) 
      {
-      if( theEvent->getByLabel(theInputTag, pDigis) ) {
+      if( theEvent->getByToken(tok_, pDigis) ) {
         digis = pDigis.product(); // get a ptr to the product
         LogTrace("HcalSignalGenerator") << "total # digis  for "  << theInputTag << " " <<  digis->size();
       }
@@ -67,7 +75,7 @@ public:
     else if(theEventPrincipal)
     {
        boost::shared_ptr<edm::Wrapper<COLLECTION>  const> digisPTR =
-          edm::getProductByTag<COLLECTION>(*theEventPrincipal, theInputTag );
+          edm::getProductByTag<COLLECTION>(*theEventPrincipal, theInputTag, mcc );
        if(digisPTR) {
           digis = digisPTR->product();
        }
@@ -119,6 +127,7 @@ private:
   edm::ESHandle<HcalDbService> theConditions;
   /// these come from the ParameterSet
   edm::InputTag theInputTag;
+  edm::EDGetTokenT<COLLECTION> tok_;
 };
 
 typedef HcalSignalGenerator<HBHEDigitizerTraits> HBHESignalGenerator;
